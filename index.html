@@ -572,10 +572,10 @@ const ENDPOINT='https://script.google.com/macros/s/AKfycbyad-_LHdna6pa98PwAbDy9h
 const LBL={tipo_aviso:'Tipo de aviso',n:'Nombre',m:'Mail',c:'Celular',vol:'También voluntario',a:'Tareas',d:'Día',monto:'Monto',r:'Rubro',dir:'Dirección',p:'Contacto',ds:'Descuento a amigos',t:'Mensaje',q:'Detalle',s:'Sector',vin:'Vínculo con el hospital'};
 const HOJA={amigo:'Amigos',vol:'Voluntarios',libre:'Aportes libres',lugar:'Guía amiga',brazo:'Brazos del Penna',manos:'Las Manos',aviso:'Avisos',bolsa:'Bolsa de trabajo',buzon:'Buzón de ideas'};
 async function send(tipo,data){
- if(!ENDPOINT)return;
+ if(!ENDPOINT)return null;
  const p=new URLSearchParams();p.append('hoja',HOJA[tipo]||tipo);
  for(const [k,v] of Object.entries(data)){if(k==='ok'||k==='v'||k==='o'||v===''||v==null)continue;p.append(LBL[k]||k,Array.isArray(v)?v.join(', '):String(v))}
- try{await fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:p})}catch(e){}
+ try{const r=await fetch(ENDPOINT,{method:'POST',body:p});return await r.json()}catch(e){return null}
 }
 const okMail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 const collect=f=>{const d={};for(const el of f.elements){if(!el.name)continue;if(el.type==='radio'){if(el.checked)d[el.name]=el.value}else if(el.type==='checkbox'){if(el.checked)(d[el.name]=d[el.name]||[]).push(el.value)}else d[el.name]=el.value.trim()}return d};
@@ -624,7 +624,7 @@ $('#fOp').addEventListener('submit',e=>{e.preventDefault();const f=e.target,d=co
 
 /* flujo de Sumate */
 const ov=$('#ov'),body=$('#body'),stepsEl=$('#steps'),title=$('#shT');
-let st={},num=1,lastFocus=null;
+let st={},lastFocus=null;
 function open(k,v){lastFocus=document.activeElement;st={k:OPTS[k]?k:'amigo',data:{},pre:v||'5000'};ov.hidden=false;document.body.style.overflow='hidden';datos();$('#close').focus()}
 function close(){ov.hidden=true;document.body.style.overflow='';lastFocus&&lastFocus.focus()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b){e.preventDefault();open(b.dataset.open,b.dataset.v)}});
@@ -663,11 +663,12 @@ function pago(){const k=st.k,o=OPTS[k];title.textContent='Último paso';steps(2)
  $('#mp').addEventListener('click',e=>{e.target.disabled=true;e.target.textContent='Procesando…';setTimeout(final,1100)})}
 
 const CARNET=(hd,b,n,extra='')=>`<div class="carnet pop" style="max-width:380px"><div class="hd">${hd} <b>${b}</b></div><div class="bd"><div class="nm">Nombre <span class="hand" style="flex:1;font-size:28px;color:var(--noche);border-bottom:2px dotted var(--azul)">${n}</span></div>${extra}<p class="lema">Quien abraza, sostiene</p></div></div>`;
-function final(){const k=st.k,d=st.data,n=esc(d.n||''),m=esc(d.m||'');steps(hasPay(k)?3:2);let h='';
- send(k,d);
+async function final(){const k=st.k,d=st.data,n=esc(d.n||''),m=esc(d.m||'');steps(hasPay(k)?3:2);let h='';
+ let res=null;
+ if(k==='amigo'){title.textContent='Generando tu carnet…';body.innerHTML='<p class="demo" style="padding:30px 0">Un segundo, estamos sumando tu abrazo…</p>';res=await send(k,d)}else send(k,d);
  const av=k==='amigo'&&d.vol&&d.vol.length;
- if(k==='amigo'){title.textContent='¡Bienvenido al abrazo!';const nro=String(num++).padStart(4,'0');
-  h=CARNET('CARNET AMIGO DEL PENNA','N.º '+nro,n,av?'<p style="margin-top:8px;font-weight:700;color:var(--azul)">Voluntario · Se suma</p>':'')+`<p>Ya sos amigo del Penna. Te mandamos un mensaje de bienvenida a ${m} y, cada mes, te contamos qué se compró y cuánto falta.${av?' Además te llamamos dentro de la semana para coordinar tu primera jornada como voluntario.':''}</p>`}
+ if(k==='amigo'){title.textContent='¡Bienvenido al abrazo!';const nro=res&&res.numero?'N.º '+String(res.numero).padStart(4,'0'):'';
+  h=CARNET('CARNET AMIGO DEL PENNA',nro,n,av?'<p style="margin-top:8px;font-weight:700;color:var(--azul)">Voluntario · Se suma</p>':'')+`<p>Ya sos amigo del Penna.${nro?'':' Tu número de amigo te llega en el mensaje de bienvenida.'} Te mandamos un mensaje de bienvenida a ${m} y, cada mes, te contamos qué se compró y cuánto falta.${av?' Además te llamamos dentro de la semana para coordinar tu primera jornada como voluntario.':''}</p>`}
  if(k==='vol'){title.textContent='¡Gracias por tu tiempo!';
   h=CARNET('VOLUNTARIO DEL PENNA','Se suma',n,`<p style="margin-top:8px;font-weight:700">0 puntos · ${esc(d.d||'')}</p>`)+`<p>Te llamamos dentro de la semana con una tarea concreta. Cada jornada suma 10 puntos para subir de nivel.</p>`}
  if(k==='libre'){title.textContent='¡Gracias!';
