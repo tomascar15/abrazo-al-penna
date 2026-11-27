@@ -343,13 +343,6 @@ footer .small{font-size:13px;color:#aebbd4;margin-top:26px}
  <div class="wrap">
   <h2>Cien años cuidando al barrio</h2>
   <p class="lead">Hace cien años que el Penna cuida a Parque Patricios. Ahora le toca al barrio devolverle un abrazo.</p>
-  <div class="gal" id="gal" tabindex="0" aria-label="Fotos del hospital">
-   <figure><svg class="i"><use href="#i-cam"/></svg><figcaption>Fachada</figcaption></figure>
-   <figure><svg class="i"><use href="#i-cam"/></svg><figcaption>Maternidad</figcaption></figure>
-   <figure><svg class="i"><use href="#i-cam"/></svg><figcaption>Guardia</figcaption></figure>
-   <figure><svg class="i"><use href="#i-cam"/></svg><figcaption>Pasillos</figcaption></figure>
-  </div>
-  <div class="galnav"><button id="gPrev" aria-label="Foto anterior">‹</button><button id="gNext" aria-label="Foto siguiente">›</button></div>
   <div class="now">
    <p class="sec">META ACTUAL · MATERNIDAD</p>
    <h3>5 cunas para recién nacidos</h3>
@@ -603,10 +596,6 @@ const PH=[['Lo de todos los días','Camas, cunas, mesas de luz, mesas y sillas']
 $('#phases').innerHTML=PH.map((p,i)=>`<div class="phase${i?'':' on'}"><span class="n">${i+1}</span><b>${p[0]}</b><span>${i?'Más adelante':'Ahora'}</span></div>`).join('');
 const GO=[['GUARDIA','Sillas para acompañantes'],['INTERNACIÓN','Mesas de luz y mesas para comer'],['INTERNACIÓN','Camas']];
 $('#goals').innerHTML=GO.map((g,i)=>`<div class="goal"><p class="sec">META ${i+2} · ${g[0]}</p><h3>${g[1]}</h3><div class="bar"><i style="background:rgba(246,247,236,.35)"></i></div><p class="wait">Arranca cuando se cumpla la meta anterior</p></div>`).join('');
-/* galería */
-const gal=$('#gal');const gs=d=>{const f=gal.querySelector('figure');gal.scrollBy({left:d*(f.offsetWidth+12),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
-$('#gPrev').addEventListener('click',()=>gs(-1));$('#gNext').addEventListener('click',()=>gs(1));
-gal.addEventListener('keydown',e=>{if(e.key==='ArrowRight')gs(1);if(e.key==='ArrowLeft')gs(-1)});
 /* menú */
 const nav=$('#nav'),mb=$('#menuB');
 mb.addEventListener('click',()=>{const o=nav.classList.toggle('open');mb.setAttribute('aria-expanded',o)});
